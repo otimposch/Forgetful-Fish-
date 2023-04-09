@@ -26,6 +26,7 @@ class MyApp extends StatelessWidget {
       ),
       home: Scaffold(
         appBar: CustomAppBar(),
+        drawerEnableOpenDragGesture: false,
         drawer: const CustomDrawer(),
         body: Navigator(
           initialRoute: '/',
@@ -186,14 +187,37 @@ class ProgressIndicator extends StatefulWidget {
   ProgressIndicatorState createState() => ProgressIndicatorState();
 }
 
-class ProgressIndicatorState extends State<ProgressIndicator> {
+class ProgressIndicatorState extends State<ProgressIndicator>
+    with SingleTickerProviderStateMixin {
   late int currentStep = widget.currentStep;
   bool _isExpanded = false;
+  late AnimationController _animationController;
+  late Animation<double> _animation;
 
   void _toggleExpand() {
     setState(() {
       _isExpanded = !_isExpanded;
+      if (_isExpanded) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+      }
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 200));
+    _animation =
+        Tween<double>(begin: 0, end: 0.25).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -219,7 +243,15 @@ class ProgressIndicatorState extends State<ProgressIndicator> {
                   animationDuration: 500,
                 ),
                 const SizedBox(width: 10),
-                Text(stepTitles[currentStep - 1]),
+                Text(
+                  stepTitles[currentStep - 1],
+                  style: TextStyle(fontSize: 16),
+                ),
+                const Spacer(),
+                RotationTransition(
+                  turns: _animation,
+                  child: const Icon(Icons.chevron_right),
+                ),
               ],
             ),
             if (_isExpanded) ...[
@@ -383,9 +415,18 @@ class Step1Screen extends StatefulWidget {
 }
 
 class Step1ScreenState extends State<Step1Screen> {
+  final ScrollController _scrollController = ScrollController();
+
   void addRow() {
     setState(() {
       cards.add({"name": "", "category": categories[0], "quantity": 0});
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
     });
   }
 
@@ -423,34 +464,57 @@ class Step1ScreenState extends State<Step1Screen> {
 
   _buildMobileLayout() {
     return ListView.builder(
+      controller: _scrollController,
       itemCount: cards.length,
       itemBuilder: (BuildContext context, int index) {
-        return ListTile(
-          title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(cards[index]["name"]),
-                Text('${cards[index]['quantity']}枚')
-              ]),
-          subtitle: Text(cards[index]["category"]),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CardEditScreen(
-                  index: index,
-                  card: cards[index],
-                  categories: categories,
-                  quantities: quantities,
-                  onSave: (int index, Map<String, dynamic> editedCard) {
-                    setState(() {
-                      cards[index] = editedCard;
-                    });
-                  },
+        return Dismissible(
+          key: UniqueKey(),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            color: Colors.red,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Icon(
+                  Icons.delete,
+                  color: Colors.white,
                 ),
               ),
-            );
+            ),
+          ),
+          onDismissed: (direction) {
+            setState(() {
+              cards.removeAt(index);
+            });
           },
+          child: ListTile(
+            title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(cards[index]["name"]),
+                  Text('${cards[index]['quantity']}枚')
+                ]),
+            subtitle: Text(cards[index]["category"]),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CardEditScreen(
+                    index: index,
+                    card: cards[index],
+                    categories: categories,
+                    quantities: quantities,
+                    onSave: (int index, Map<String, dynamic> editedCard) {
+                      setState(() {
+                        cards[index] = editedCard;
+                      });
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
         );
       },
     );
@@ -458,6 +522,7 @@ class Step1ScreenState extends State<Step1Screen> {
 
   Widget _buildDesktopLayout(BuildContext context) {
     return SingleChildScrollView(
+      controller: _scrollController,
       child: Center(
         child: DataTable(
           columns: const [

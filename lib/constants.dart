@@ -83,26 +83,9 @@ List<Map<String, dynamic>> cards = [
   {"name": "予報 / Predict", "category": "ドロー", "quantity": 2},
   {"name": "蓄積した知識 / Accumulated Knowledge", "category": "ドロー", "quantity": 4},
   {"name": "大慌ての棚卸し / Frantic Inventory", "category": "ドロー", "quantity": 0},
-  {
-    "name": "凍氷砕 / Icy Blast",
-    "category": "クリーチャー操作/能力付与/スタッツ補正",
-    "quantity": 1
-  },
   {"name": "テフェリーの細工箱 / Teferi's Puzzle Box", "category": "ドロー", "quantity": 1},
-  {"name": "時間の滝 / Temporal Cascade", "category": "手札墓地リセット", "quantity": 2},
-  {
-    "name": "川の叱責 / River's Rebuke",
-    "category": "クリーチャー操作/能力付与/スタッツ補正",
-    "quantity": 2
-  },
-  {
-    "name": "理性のゲーム / Mind Games",
-    "category": "クリーチャー操作/能力付与/スタッツ補正",
-    "quantity": 2
-  },
   {"name": "偏った幸運 / Fortune's Favor", "category": "ドロー", "quantity": 2},
   {"name": "真実か詐話か / Truth or Tale", "category": "ドロー", "quantity": 2},
-  {"name": "テフェリーの細工箱 / Teferi's Puzzle Box", "category": "ドロー", "quantity": 1},
 
   //バウンス
   {"name": "非実体化 / Unsubstantiate", "category": "バウンス", "quantity": 2},
@@ -214,19 +197,6 @@ List<List<int>> cardAmountTemplates = [
   [6, 0, 1, 0, 11, 1, 4, 2, 1, 1, 3, 2, 14],
   [2, 2, 2, 5, 8, 6, 3, 2, 0, 1, 0, 1, 14],
 ];
-// カウンター
-// クリーチャー操作/能力付与/スタッツ補正
-// コピー
-// サーチ/濾過
-// ドロー
-// バウンス
-// ライブラリ操作
-// 手札墓地リセット
-// 全体除去
-// 対象変更/奪取
-// 単体除去
-// 墓地回収
-// 基本でない土地
 
 List<String> stepTitles = [
   'STEP1 : 所持カード登録 ',
@@ -235,7 +205,7 @@ List<String> stepTitles = [
 ];
 
 List<String> stepDescriptions = [
-  '所持カードを登録してください。\n・Forgetful Fishに適したカードは初期セットされています。枚数のみ調整してください。\n・カテゴリは変更可能です。納得いかない場合は変更してください（ex.思案のカテゴリをライブラリ操作→ドロー）\n・初期リストにないカードを使いたい場合は＋ボタンから追加してください。',
+  '所持カードを登録してください。\n・Forgetful Fishに適したカードは初期セットされています。枚数のみ調整してください。\n・カテゴリは変更可能です。納得いかない場合は変更してください（ex.<思案/Ponder>のカテゴリを"ライブラリ操作"→"ドロー"）\n・初期リストにないカードを使いたい場合は＋ボタンから追加してください。',
   'デッキが80枚になるように、カテゴリごとに投入枚数を決定してください。\n・戦型に応じたテンプレートを用意しているのでご利用ください。\n・ダンダーン10枚、土地(基本土地＋基本でない土地)32枚で固定です。\n・記憶の欠落は、チェックボックスから8枚投入することも可能です。',
   '生成されたデッキ構成に従って、デッキを作ってください。さぁダンダーンバトルの始まりです。\n・デッキ構成が気に入らない場合は、再生成ボタンからやり直しが可能です。 ',
 ];
