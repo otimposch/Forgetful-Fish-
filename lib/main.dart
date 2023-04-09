@@ -5,11 +5,13 @@ import 'dart:math';
 import 'constants.dart';
 import 'about_page.dart';
 import 'contact_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
-  runApp(const MaterialApp(
-    home: MyApp(),
-  ));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(MyApp());
 }
 
 //Home
