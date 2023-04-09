@@ -8,14 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
-      # 追加: Flutterのセットアップ
       - name: Set up Flutter
-        uses: subosito/flutter-action@v1
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          channel: 'stable'
       
-      # 既存のステップを続けます
+      - run: flutter pub get
+      - run: flutter test
       - run: flutter build web
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
