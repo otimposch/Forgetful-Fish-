@@ -267,7 +267,7 @@ class ProgressIndicatorState extends State<ProgressIndicator>
   }
 }
 
-//SPサイズの時のSTEP1編集画面
+//STEP1編集画面
 class CardEditScreen extends StatefulWidget {
   final int index;
   final Map<String, dynamic> card;
@@ -346,6 +346,7 @@ class CardEditScreenState extends State<CardEditScreen> {
                 DropdownButton<String>(
                   value: _selectedCategory,
                   items: widget.categories
+                      .where((category) => !category.contains("(固定)")) // 追加
                       .map<DropdownMenuItem<String>>(
                         (category) => DropdownMenuItem(
                           value: category,
@@ -488,55 +489,64 @@ class Step1ScreenState extends State<Step1Screen> {
       controller: _scrollController,
       itemCount: cards.length,
       itemBuilder: (BuildContext context, int index) {
-        return Dismissible(
-          key: UniqueKey(),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            color: Colors.red,
-            child: const Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Icon(
-                  Icons.delete,
-                  color: Colors.white,
+        bool isFixedCategory = cards[index]["category"].contains("(固定)");
+        Widget listTile = ListTile(
+          title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(cards[index]["name"]),
+                Text('${cards[index]['quantity']}枚')
+              ]),
+          subtitle: Text(cards[index]["category"]),
+          onTap: isFixedCategory
+              ? null
+              : () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CardEditScreen(
+                        index: index,
+                        card: cards[index],
+                        categories: categories,
+                        quantities: quantities,
+                        onSave: (int index, Map<String, dynamic> editedCard) {
+                          setState(() {
+                            cards[index] = editedCard;
+                          });
+                        },
+                      ),
+                    ),
+                  );
+                },
+        );
+
+        if (isFixedCategory) {
+          return listTile;
+        } else {
+          return Dismissible(
+            key: UniqueKey(),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              color: Colors.red,
+              child: const Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
-          onDismissed: (direction) {
-            setState(() {
-              cards.removeAt(index);
-            });
-          },
-          child: ListTile(
-            title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(cards[index]["name"]),
-                  Text('${cards[index]['quantity']}枚')
-                ]),
-            subtitle: Text(cards[index]["category"]),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CardEditScreen(
-                    index: index,
-                    card: cards[index],
-                    categories: categories,
-                    quantities: quantities,
-                    onSave: (int index, Map<String, dynamic> editedCard) {
-                      setState(() {
-                        cards[index] = editedCard;
-                      });
-                    },
-                  ),
-                ),
-              );
+            onDismissed: (direction) {
+              setState(() {
+                cards.removeAt(index);
+              });
             },
-          ),
-        );
+            child: listTile,
+          );
+        }
       },
     );
   }
@@ -633,13 +643,12 @@ class Step2ScreenState extends State<Step2Screen>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
-  int dandanAmount = 10;
-  int islandAmount = 0;
   int islandAmountMax = 32;
+  int get memoryLapseIndex => widget.categories.indexOf("記憶の欠落(固定)");
+  int get basicLandIndex => widget.categories.indexOf("基本土地(固定)");
   int get nonBasicLandIndex => widget.categories.indexOf("基本でない土地");
   bool memoryLapseCheckbox = false;
   List<String> get categories => widget.categories;
-  int get memoryLapseAmount => memoryLapseCheckbox ? 8 : 6;
   late List<int> cardAmounts = List.generate(categories.length, (index) => 0);
   int getCategoryQuantitySum(String category) {
     return widget.cards!
@@ -655,10 +664,7 @@ class Step2ScreenState extends State<Step2Screen>
     if (tabIndex < 0 || tabIndex >= cardAmountTemplates.length) {
       return 0;
     }
-    return cardAmounts.reduce((a, b) => a + b) +
-        dandanAmount +
-        memoryLapseAmount +
-        islandAmount;
+    return cardAmounts.reduce((a, b) => a + b);
   }
 
   void showSnackBar(
@@ -684,7 +690,6 @@ class Step2ScreenState extends State<Step2Screen>
         TabController(vsync: this, length: cardAmountTemplates.length);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Set the initial card amounts based on the first template
       setState(() {
         List<int> initialTemplate = List.from(cardAmountTemplates[0]);
         for (int i = 0; i < initialTemplate.length; i++) {
@@ -697,7 +702,7 @@ class Step2ScreenState extends State<Step2Screen>
         }
         cardAmounts = initialTemplate;
         int nonBasicLandAmount = cardAmounts[nonBasicLandIndex];
-        islandAmount = islandAmountMax - nonBasicLandAmount;
+        cardAmounts[basicLandIndex] = islandAmountMax - nonBasicLandAmount;
       });
     });
 
@@ -716,7 +721,7 @@ class Step2ScreenState extends State<Step2Screen>
         }
         cardAmounts = currentTemplate;
         int nonBasicLandAmount = cardAmounts[nonBasicLandIndex];
-        islandAmount = islandAmountMax - nonBasicLandAmount;
+        cardAmounts[basicLandIndex] = islandAmountMax - nonBasicLandAmount;
       });
     });
   }
@@ -749,7 +754,7 @@ class Step2ScreenState extends State<Step2Screen>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(), // スワイプ禁止
+              physics: const NeverScrollableScrollPhysics(),
               children: List.generate(cardAmountTemplates.length, (i) {
                 return SingleChildScrollView(
                   child: DataTable(
@@ -775,69 +780,21 @@ class Step2ScreenState extends State<Step2Screen>
                                     DropdownMenuItem(
                                         value: i, child: Text('$i')),
                                 ],
-                                onChanged: (value) {
-                                  setState(() {
-                                    cardAmounts[index] = value!;
-                                    if (index == nonBasicLandIndex) {
-                                      // 基本でない土地の投入枚数が変更された場合だけ、islandAmountを更新
-                                      islandAmount = islandAmountMax - value;
-                                    }
-                                  });
-                                },
+                                onChanged: categories[index].contains("(固定)")
+                                    ? null
+                                    : (value) {
+                                        setState(() {
+                                          cardAmounts[index] = value!;
+                                          if (index == nonBasicLandIndex) {
+                                            cardAmounts[basicLandIndex] =
+                                                islandAmountMax - value;
+                                          }
+                                        });
+                                      },
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      DataRow(
-                        cells: [
-                          const DataCell(Text('ダンダーン')),
-                          DataCell(
-                            DropdownButton<int>(
-                              value: dandanAmount,
-                              items: [
-                                DropdownMenuItem(
-                                    value: dandanAmount,
-                                    child: Text('$dandanAmount')),
-                              ],
-                              onChanged: null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      DataRow(
-                        cells: [
-                          const DataCell(Text('記憶の欠落')),
-                          DataCell(
-                            DropdownButton<int>(
-                              value: memoryLapseAmount,
-                              items: [
-                                DropdownMenuItem(
-                                  value: memoryLapseAmount,
-                                  child: Text('$memoryLapseAmount'),
-                                ),
-                              ],
-                              onChanged: null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      DataRow(
-                        cells: [
-                          const DataCell(Text('島(基本土地)')),
-                          DataCell(
-                            DropdownButton<int>(
-                              value: islandAmount,
-                              items: [
-                                DropdownMenuItem(
-                                  value: islandAmount,
-                                  child: Text('$islandAmount'),
-                                ),
-                              ],
-                              onChanged: null,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
@@ -858,13 +815,16 @@ class Step2ScreenState extends State<Step2Screen>
                     memoryLapseCheckbox = !memoryLapseCheckbox;
                   });
                 },
-                child: const Text("記憶の欠落を8枚投入する"),
+                child: const Text("記憶の欠落を6枚投入する"),
               ),
               Checkbox(
                 value: memoryLapseCheckbox,
                 onChanged: (value) {
                   setState(() {
                     memoryLapseCheckbox = value!;
+                    memoryLapseCheckbox
+                        ? cardAmounts[memoryLapseIndex] = 6
+                        : cardAmounts[memoryLapseIndex] = 8;
                   });
                 },
               ),
@@ -955,7 +915,11 @@ class Step3ScreenState extends State<Step3Screen> {
         if (existingCard != null) {
           existingCard["quantity"] += cardQuantity;
         } else {
-          newDeck.add({"name": selectedCard["name"], "quantity": cardQuantity});
+          newDeck.add({
+            "name": selectedCard["name"],
+            "quantity": cardQuantity,
+            "category": category // ここを追加
+          });
         }
 
         currentAmount += cardQuantity;
@@ -966,28 +930,74 @@ class Step3ScreenState extends State<Step3Screen> {
     return newDeck;
   }
 
+  Map<String, List<Map<String, dynamic>>> _categorizedDeck() {
+    Map<String, List<Map<String, dynamic>>> categorizedDeck = {};
+
+    for (var card in deck) {
+      String category = card["category"];
+
+      if (category.contains("(固定)")) {
+        category = "固定";
+      }
+
+      if (!categorizedDeck.containsKey(category)) {
+        categorizedDeck[category] = [];
+      }
+
+      categorizedDeck[category]!.add(card);
+    }
+
+    return categorizedDeck;
+  }
+
+  List<Widget> buildCategoryCardList(List<Map<String, dynamic>> cards) {
+    return cards.map<Widget>((card) {
+      return Container(
+        color: Color.fromARGB(255, 255, 255, 255), // カードの背景色を変更
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 6), // 高さを調整
+          child: Text('${card["quantity"]} x ${card["name"]}'),
+        ),
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    Map<String, List<Map<String, dynamic>>> categorizedDeck =
+        _categorizedDeck();
+
     return Scaffold(
       body: Column(
         children: [
           Expanded(
-            child: SingleChildScrollView(
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('カード名')),
-                  DataColumn(label: Text('枚数')),
-                ],
-                rows: List<DataRow>.generate(
-                  deck.length,
-                  (index) => DataRow(
-                    cells: [
-                      DataCell(Text(deck[index]["name"])),
-                      DataCell(Text(deck[index]["quantity"].toString())),
-                    ],
-                  ),
-                ),
-              ),
+            child: ListView.builder(
+              itemCount: categorizedDeck.keys.length,
+              itemBuilder: (context, index) {
+                String category = categorizedDeck.keys.elementAt(index);
+                List<Map<String, dynamic>> categoryCards =
+                    categorizedDeck[category]!;
+                int totalCount = categoryCards.fold<int>(
+                    0, (sum, card) => sum + card["quantity"] as int);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 15, 16, 0),
+                      child: Text(
+                        '$category ($totalCount)',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColor),
+                      ),
+                    ),
+                    const Divider(),
+                    ...buildCategoryCardList(categoryCards),
+                  ],
+                );
+              },
             ),
           ),
           Row(
@@ -999,7 +1009,6 @@ class Step3ScreenState extends State<Step3Screen> {
                   Navigator.pop(context);
                 },
               ),
-              // 更新ボタンを追加
               CustomElevatedButton(
                 buttonText: '再生成',
                 onPressed: () {

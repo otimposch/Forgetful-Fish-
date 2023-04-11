@@ -171,6 +171,12 @@ List<Map<String, dynamic>> cards = [
     "quantity": 0
   },
   {"name": "天啓の神殿 / Temple of Epiphany", "category": "基本でない土地", "quantity": 2},
+  //ダンダーン(固定)
+  {"name": "ダンダーン / Dandan", "category": "ダンダーン(固定)", "quantity": 10},
+  //記憶の欠落(固定)
+  {"name": "記憶の欠落 / Memory Lapse", "category": "記憶の欠落(固定)", "quantity": 8},
+  //島(固定)
+  {"name": "島 / Island", "category": "基本土地(固定)", "quantity": 32},
 ];
 
 List<String> categories =
@@ -179,10 +185,11 @@ List<String> categories =
 const List<int> quantities = [0, 1, 2, 3, 4];
 
 List<List<int>> cardAmountTemplates = [
-  [4, 2, 1, 0, 8, 0, 6, 2, 2, 0, 5, 2, 14],
-  [6, 0, 1, 0, 11, 1, 4, 2, 1, 1, 3, 2, 14],
-  [2, 2, 2, 5, 8, 6, 3, 2, 0, 1, 0, 1, 14],
+  [3, 2, 1, 0, 8, 0, 6, 2, 2, 0, 4, 2, 14, 10, 8, 18],
+  [5, 0, 1, 0, 10, 1, 4, 2, 1, 1, 3, 2, 14, 10, 8, 18],
+  [1, 2, 2, 3, 8, 6, 4, 2, 0, 1, 0, 1, 14, 10, 8, 18],
 ];
+
 // "カウンター",
 // "クリーチャー操作/能力付与/スタッツ補正",
 // "コピー",
@@ -196,6 +203,9 @@ List<List<int>> cardAmountTemplates = [
 // "単体除去",
 // "墓地回収",
 // "基本でない土地",
+//ダンダーン(固定)
+//記憶の欠落(固定)
+//基本土地(固定)
 
 List<String> stepTitles = [
   'STEP1 : 所持カード登録 ',
