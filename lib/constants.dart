@@ -1,7 +1,6 @@
 List<Map<String, dynamic>> cards = [
   //カウンター
   {"name": "腹黒い意志 / Insidious Will", "category": "カウンター", "quantity": 2},
-  {"name": "記憶の欠落 / Memory Lapse", "category": "カウンター", "quantity": 2},
   {"name": "秘儀の否定 / Arcane Denial", "category": "カウンター", "quantity": 2},
   {
     "name": "計算された放逐 / Calculated Dismissal",
@@ -180,7 +179,7 @@ List<String> categories =
 const List<int> quantities = [0, 1, 2, 3, 4];
 
 List<List<int>> cardAmountTemplates = [
-  [4, 2, 1, 0, 8, 0, 3, 2, 5, 0, 5, 2, 14],
+  [4, 2, 1, 0, 8, 0, 6, 2, 2, 0, 5, 2, 14],
   [6, 0, 1, 0, 11, 1, 4, 2, 1, 1, 3, 2, 14],
   [2, 2, 2, 5, 8, 6, 3, 2, 0, 1, 0, 1, 14],
 ];
