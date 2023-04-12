@@ -953,7 +953,7 @@ class Step3ScreenState extends State<Step3Screen> {
   List<Widget> buildCategoryCardList(List<Map<String, dynamic>> cards) {
     return cards.map<Widget>((card) {
       return Container(
-        color: Color.fromARGB(255, 255, 255, 255), // カードの背景色を変更
+        color: const Color.fromARGB(255, 255, 255, 255), // カードの背景色を変更
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 6), // 高さを調整
           child: Text('${card["quantity"]} x ${card["name"]}'),
