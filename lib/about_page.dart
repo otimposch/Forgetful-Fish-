@@ -12,7 +12,9 @@ class AboutPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset('assets/top_image.png'), // トップ画像を配置する
+            Center(
+              child: Image.asset('assets/cards/dandan.png'),
+            ), // トップ画像を配置する
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: LayoutBuilder(

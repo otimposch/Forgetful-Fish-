@@ -8,6 +8,8 @@ import 'contact_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'dart:async';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -104,9 +106,13 @@ class CustomAppBar extends StatelessWidget with PreferredSizeWidget {
     }
 
     return AppBar(
-      title: Text(
-        'Forgetful fishデッキ生成',
-        style: TextStyle(fontSize: appBarFontSize),
+      title: Semantics(
+        header: true,
+        child: Text(
+          'ForgetfulFish Generator',
+          style: TextStyle(fontSize: appBarFontSize),
+          textAlign: TextAlign.center,
+        ),
       ),
       leading: Builder(
         builder: (BuildContext context) {
@@ -123,26 +129,75 @@ class CustomAppBar extends StatelessWidget with PreferredSizeWidget {
   }
 }
 
+class TwitterShareWidget extends StatelessWidget {
+  final String text;
+  final String url;
+  final List<String> hashtags;
+  final String via;
+  final String related;
+
+  const TwitterShareWidget(
+      {Key? key,
+      required this.text,
+      this.url = "",
+      this.hashtags = const [],
+      this.via = "",
+      this.related = ""})
+      : super(key: key);
+
+  void _tweet() async {
+    final Map<String, dynamic> tweetQuery = {
+      "text": text,
+      "url": url,
+      "hashtags": hashtags.join(","),
+      "via": via,
+      "related": related,
+    };
+
+    final Uri tweetScheme =
+        Uri(scheme: "twitter", host: "post", queryParameters: tweetQuery);
+
+    final Uri tweetIntentUrl =
+        Uri.https("twitter.com", "/intent/tweet", tweetQuery);
+
+    await canLaunchUrl(tweetScheme)
+        ? await launchUrl(tweetScheme)
+        : await launchUrl(tweetIntentUrl);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      backgroundColor: Colors.lightBlueAccent,
+      onPressed: () {
+        _tweet();
+      },
+      child: const Icon(MdiIcons.twitter),
+    );
+  }
+}
+
 //新Drawer
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
+    String shareText = 'Forgetful Fish - マジックザギャザリングデッキ生成アプリ';
+    String shareUrl = 'https://forgetful-fish.web.app';
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
           const DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
-            ),
-            child: Text(
-              'Menu',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
+              image: DecorationImage(
+                image: AssetImage('assets/icon/Dandan banner.png'),
+                fit: BoxFit.cover,
               ),
             ),
+            child: null,
           ),
           ListTile(
             leading: const Icon(Icons.info),
@@ -153,15 +208,27 @@ class CustomDrawer extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => const AboutPage()));
             },
           ),
-          // ListTile(
-          //   leading: const Icon(Icons.help),
-          //   title: const Text('ヘルプ'),
-          //   onTap: () {
-          //     Navigator.of(context).pop(); // drawer を閉じる
-          //     Navigator.push(context,
-          //         MaterialPageRoute(builder: (context) => const AboutPage()));
-          //   },
-          // ),
+          ListTile(
+            leading: const Icon(Icons.lightbulb_outline),
+            title: Row(
+              children: const [
+                Text(
+                  'ForgetfulFishの遊び方',
+                  style: TextStyle(
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  '準備中',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
+            ),
+            onTap: () {
+              // 何もしない
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.contact_page),
             title: const Text('コンタクト'),
@@ -170,6 +237,20 @@ class CustomDrawer extends StatelessWidget {
               Navigator.push(context,
                   MaterialPageRoute(builder: (context) => const ContactPage()));
             },
+          ),
+          const SizedBox(height: 16), // ここでマージンを追加
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                TwitterShareWidget(
+                  text: shareText,
+                  url: shareUrl,
+                  hashtags: const ['ForgetfulFish', 'MTG'],
+                ),
+              ],
+            ),
           ),
         ],
       ),

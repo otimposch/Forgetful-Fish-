@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-STKNNP8N3R"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-STKNNP8N3R');
+  </script>
   <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
@@ -18,19 +27,28 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description"
+  content="マジックザギャザリングのユニークな対戦フォーマットであるForgetful Fishのデッキを生成するWebアプリです。自分のカードを登録してデッキ構成を選び、新たな対戦を楽しみましょう！">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="create_deck">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icon/dandan_sq.png" alt="Forgetful Fish Generatorアイコン">
+  <link rel="icon" type="image/png" href="assets/icon/dandan_sq.png" alt="Forgetful Fish Generatorアイコン" />
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>create_deck</title>
+  <link rel="icon" type="image/png" href="assets/icon/dandan_sq.png"/>
+  <title>Forgetful Fish Generator - マジックザギャザリング デッキ生成アプリ</title>
   <link rel="manifest" href="manifest.json">
+
+  <!--ソーシャルメディア用のOGタグ-->
+  <meta property="og:title" content="Forgetful Fish Generator - マジックザギャザリングデッキ生成アプリ" />
+  <meta property="og:description"
+    content="マジックザギャザリングのユニークな対戦フォーマットであるForgetful Fishのデッキを生成するWebアプリです。自分のカードを登録してデッキ構成を選び、新たな対戦を楽しみましょう！" />
+  <meta property="og:image" content="assets/icon/dandan_sq.png" />
+  <meta property="og:url" content="https://forgetful-fish.web.app/" />
+  <meta property="og:type" content="website" />
+
 
   <script>
     // The value below is injected by flutter build, do not touch.
@@ -45,6 +63,7 @@
   </style>
 </head>
 <body>
+  <h1 style="display: none;">Forgetful Fish Generator- マジックザギャザリング デッキ生成アプリ</h1>
   <script>
     window.addEventListener('load', function(ev) {
       // Download main.dart.js
