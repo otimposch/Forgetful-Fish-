@@ -153,6 +153,29 @@ List<Map<String, dynamic>> cards = [
   //墓地回収
   {"name": "神秘の回復 / Mystic Retrieval", "category": "墓地回収", "quantity": 2},
   {"name": "復習 / Relearn", "category": "墓地回収", "quantity": 0},
+  //基本でない土地
+  {
+    "name": "セファリッドの円形競技場 / Cephalid Coliseum",
+    "category": "基本でない土地",
+    "quantity": 0
+  },
+  {"name": "ハリマーの深み / Halimar Depth", "category": "基本でない土地", "quantity": 2},
+  {
+    "name": "イゼットの煮沸場 / Izzet Boilerworks",
+    "category": "基本でない土地",
+    "quantity": 2
+  },
+  {"name": "孤立した砂洲 / Lonely Sandbar", "category": "基本でない土地", "quantity": 2},
+  {"name": "月の輪の島 / Moonring Island", "category": "基本でない土地", "quantity": 2},
+  {"name": "神秘の聖域 / Mystic Sanctuary", "category": "基本でない土地", "quantity": 2},
+  {"name": "離れ島 / Remote Isle", "category": "基本でない土地", "quantity": 2},
+  {"name": "飛翔する海崖 / Soaring Seacliff", "category": "基本でない土地", "quantity": 2},
+  {
+    "name": "シヴィエルナイトの寺院 / Svyelunite Temple",
+    "category": "基本でない土地",
+    "quantity": 0
+  },
+  {"name": "天啓の神殿 / Temple of Epiphany", "category": "基本でない土地", "quantity": 2},
   //ダンダーン(固定)
   {"name": "ダンダーン / Dandan", "category": "ダンダーン(固定)", "quantity": 10},
   //記憶の欠落(固定)
@@ -167,27 +190,27 @@ List<String> categories =
 const List<int> quantities = [0, 1, 2, 3, 4];
 
 List<List<int>> cardAmountTemplates = [
-  [3, 2, 1, 0, 8, 0, 6, 2, 2, 0, 4, 2, 14, 10, 8, 18],
-  [5, 0, 1, 0, 10, 1, 4, 2, 1, 1, 3, 2, 14, 10, 8, 18],
-  [1, 2, 2, 3, 8, 6, 4, 2, 0, 1, 0, 1, 14, 10, 8, 18],
+  [3, 0, 6, 8, 0, 2, 1, 0, 2, 4, 2, 2, 14, 10, 8, 18],
+  [5, 0, 4, 10, 1, 0, 1, 1, 1, 3, 2, 2, 14, 10, 8, 18],
+  [1, 3, 4, 8, 6, 2, 2, 1, 0, 0, 2, 1, 14, 10, 8, 18],
 ];
 
-// "カウンター",
-// "クリーチャー操作/能力付与/スタッツ補正",
-// "コピー",
-// "サーチ/濾過",
-// "ドロー",
-// "バウンス",
-// "ライブラリ操作",
-// "手札墓地リセット",
-// "全体除去",
-// "対象変更/奪取",
-// "単体除去",
-// "墓地回収",
-// "基本でない土地",
-//ダンダーン(固定)
-//記憶の欠落(固定)
-//基本土地(固定)
+// カウンター
+// サーチ/濾過
+// ライブラリ操作
+// ドロー
+// バウンス
+// クリーチャー操作/能力付与/スタッツ補正
+// コピー
+// 対象変更/奪取
+// 全体除去
+// 単体除去
+// 手札墓地リセット
+// 墓地回収
+// 基本でない土地
+// ダンダーン
+// 記憶の欠落
+// 島
 
 List<String> stepTitles = [
   "STEP1 : 所持カード登録 ",
