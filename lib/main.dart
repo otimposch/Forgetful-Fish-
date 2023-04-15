@@ -10,6 +10,8 @@ import 'firebase_options.dart';
 import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,31 +49,25 @@ class MyApp extends StatelessWidget {
                     );
                 break;
               case '/step2':
-                final Map<String, dynamic> args =
-                    settings.arguments as Map<String, dynamic>;
+                final Map<String, dynamic> args = settings.arguments as Map<String, dynamic>;
                 final cards = args['cards'];
                 final categories = args['categories'];
                 builder = (BuildContext context) => Column(children: [
                       const ProgressIndicator(currentStep: 2),
                       Expanded(
-                        child:
-                            Step2Screen(cards: cards, categories: categories),
+                        child: Step2Screen(cards: cards, categories: categories),
                       )
                     ]);
                 break;
               case '/step3':
-                final Map<String, dynamic> args =
-                    settings.arguments as Map<String, dynamic>;
+                final Map<String, dynamic> args = settings.arguments as Map<String, dynamic>;
                 final cards = args['cards'];
                 final categories = args['categories'];
                 final cardAmounts = args['cardAmounts'];
                 builder = (BuildContext context) => Column(children: [
                       const ProgressIndicator(currentStep: 3),
                       Expanded(
-                        child: Step3Screen(
-                            cards: cards,
-                            categories: categories,
-                            cardAmounts: cardAmounts),
+                        child: Step3Screen(cards: cards, categories: categories, cardAmounts: cardAmounts),
                       )
                     ]);
                 break;
@@ -137,12 +133,7 @@ class TwitterShareWidget extends StatelessWidget {
   final String related;
 
   const TwitterShareWidget(
-      {Key? key,
-      required this.text,
-      this.url = "",
-      this.hashtags = const [],
-      this.via = "",
-      this.related = ""})
+      {Key? key, required this.text, this.url = "", this.hashtags = const [], this.via = "", this.related = ""})
       : super(key: key);
 
   void _tweet() async {
@@ -154,15 +145,11 @@ class TwitterShareWidget extends StatelessWidget {
       "related": related,
     };
 
-    final Uri tweetScheme =
-        Uri(scheme: "twitter", host: "post", queryParameters: tweetQuery);
+    final Uri tweetScheme = Uri(scheme: "twitter", host: "post", queryParameters: tweetQuery);
 
-    final Uri tweetIntentUrl =
-        Uri.https("twitter.com", "/intent/tweet", tweetQuery);
+    final Uri tweetIntentUrl = Uri.https("twitter.com", "/intent/tweet", tweetQuery);
 
-    await canLaunchUrl(tweetScheme)
-        ? await launchUrl(tweetScheme)
-        : await launchUrl(tweetIntentUrl);
+    await canLaunchUrl(tweetScheme) ? await launchUrl(tweetScheme) : await launchUrl(tweetIntentUrl);
   }
 
   @override
@@ -204,8 +191,7 @@ class CustomDrawer extends StatelessWidget {
             title: const Text('ForgetfulFishとは？'),
             onTap: () {
               Navigator.of(context).pop(); // drawer を閉じる
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const AboutPage()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutPage()));
             },
           ),
           ListTile(
@@ -234,8 +220,7 @@ class CustomDrawer extends StatelessWidget {
             title: const Text('コンタクト'),
             onTap: () {
               Navigator.of(context).pop(); // drawer を閉じる
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const ContactPage()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const ContactPage()));
             },
           ),
           const SizedBox(height: 16), // ここでマージンを追加
@@ -262,15 +247,13 @@ class CustomDrawer extends StatelessWidget {
 class ProgressIndicator extends StatefulWidget {
   final int currentStep;
 
-  const ProgressIndicator({Key? key, required this.currentStep})
-      : super(key: key);
+  const ProgressIndicator({Key? key, required this.currentStep}) : super(key: key);
 
   @override
   ProgressIndicatorState createState() => ProgressIndicatorState();
 }
 
-class ProgressIndicatorState extends State<ProgressIndicator>
-    with SingleTickerProviderStateMixin {
+class ProgressIndicatorState extends State<ProgressIndicator> with SingleTickerProviderStateMixin {
   late int currentStep = widget.currentStep;
   bool _isExpanded = false;
   late AnimationController _animationController;
@@ -290,10 +273,8 @@ class ProgressIndicatorState extends State<ProgressIndicator>
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 200));
-    _animation =
-        Tween<double>(begin: 0, end: 0.25).animate(_animationController);
+    _animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
+    _animation = Tween<double>(begin: 0, end: 0.25).animate(_animationController);
   }
 
   @override
@@ -308,8 +289,7 @@ class ProgressIndicatorState extends State<ProgressIndicator>
       onTap: _toggleExpand,
       child: Container(
         color: Colors.transparent,
-        padding:
-            const EdgeInsets.all(10), // optional padding for better touch area
+        padding: const EdgeInsets.all(10), // optional padding for better touch area
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -327,8 +307,7 @@ class ProgressIndicatorState extends State<ProgressIndicator>
                 const SizedBox(width: 10),
                 Text(
                   stepTitles[currentStep - 1],
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 RotationTransition(
@@ -501,13 +480,21 @@ class Step1Screen extends StatefulWidget {
 class Step1ScreenState extends State<Step1Screen> {
   final ScrollController _scrollController = ScrollController();
 
-  int maxRows = 10;
+  int maxRows = 20;
+  List<Map<String, dynamic>> initialCards = cards.map((card) => Map<String, dynamic>.from(card)).toList();
   int initialCardCount = cards.length;
 
   @override
   void initState() {
     super.initState();
-    initialCardCount = cards.length;
+    loadCards().then((loadedCards) {
+      if (loadedCards.isNotEmpty) {
+        // ロードされたカードが空でない場合のみ、loadedCardsを代入
+        setState(() {
+          cards = loadedCards;
+        });
+      }
+    });
   }
 
   void addRow() {
@@ -520,7 +507,9 @@ class Step1ScreenState extends State<Step1Screen> {
       );
     } else {
       setState(() {
-        cards.add({"name": "", "category": categories[0], "quantity": 0});
+        cards.add(
+            {"name": "カード名を入力", "category": categories[0], "quantity": 0, "name_editable": true, "image": "画像のURL"});
+        saveCards(cards);
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollController.animateTo(
@@ -534,15 +523,10 @@ class Step1ScreenState extends State<Step1Screen> {
 
   @override
   Widget build(BuildContext context) {
-    //double screenWidth = MediaQuery.of(context).size.width; //レスポンシブ対応用
     return Scaffold(
       body: Column(
         children: [
-          Expanded(child: _buildMobileLayout()
-              // child: screenWidth < 900 //レスポンシブ対応用（基本的にモバイル利用想定で良いと思ったのでコメントアウト）
-              //     ? _buildMobileLayout()
-              //     : _buildDesktopLayout(context),
-              ),
+          Expanded(child: _buildMobileLayout()),
           CustomElevatedButton(
             buttonText: '次へ',
             onPressed: () {
@@ -558,151 +542,230 @@ class Step1ScreenState extends State<Step1Screen> {
           )
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: addRow,
-        child: const Icon(Icons.add),
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            bottom: 0,
+            left: 48,
+            child: FloatingActionButton(
+              onPressed: () {
+                _showDeleteConfirmationDialog(context);
+              },
+              tooltip: '初期化',
+              child: const Icon(Icons.delete),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: addRow,
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ],
       ),
     );
   }
 
+//所持カードリスト
   _buildMobileLayout() {
     return ListView.builder(
-      controller: _scrollController,
-      itemCount: cards.length,
-      itemBuilder: (BuildContext context, int index) {
-        bool isFixedCategory = cards[index]["category"].contains("(固定)");
-        Widget listTile = ListTile(
-          title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(cards[index]["name"]),
-                Text('${cards[index]['quantity']}枚')
-              ]),
-          subtitle: Text(cards[index]["category"]),
-          onTap: isFixedCategory
-              ? null
-              : () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CardEditScreen(
-                        index: index,
-                        card: cards[index],
-                        categories: categories,
-                        quantities: quantities,
-                        onSave: (int index, Map<String, dynamic> editedCard) {
-                          setState(() {
-                            cards[index] = editedCard;
-                          });
-                        },
-                      ),
-                    ),
-                  );
-                },
-        );
+        controller: _scrollController,
+        itemCount: cards.length,
+        itemBuilder: (BuildContext context, int index) {
+          bool isFixedCategory = cards[index]["category"].contains("(固定)");
+          bool nameEditable = cards[index]["name_editable"] ?? false;
 
-        if (isFixedCategory) {
-          return listTile;
-        } else {
-          return Dismissible(
-            key: UniqueKey(),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              color: Colors.red,
-              child: const Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Icon(
-                    Icons.delete,
-                    color: Colors.white,
+          Widget listTile = ListTile(
+            title: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      nameEditable
+                          ? TextFormField(
+                              initialValue: cards[index]["name"],
+                              onChanged: (String value) {
+                                setState(() {
+                                  cards[index]["name"] = value;
+                                  saveCards(cards);
+                                });
+                              },
+                            )
+                          : Text(
+                              cards[index]["name"],
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                      InkWell(
+                        onTap: isFixedCategory
+                            ? null
+                            : () async {
+                                String? selectedCategory = await showDialog<String>(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return SimpleDialog(
+                                      title: Text(cards[index]["name"]),
+                                      contentPadding: const EdgeInsets.all(20),
+                                      children: [
+                                        if (cards[index]["image"] != null)
+                                          Container(
+                                            padding: const EdgeInsets.only(bottom: 20),
+                                            child: Image.network(
+                                              cards[index]["image"],
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        Column(
+                                          children: categories
+                                              .where((String category) => !category.contains("(固定)"))
+                                              .map<Widget>((String category) {
+                                            return SimpleDialogOption(
+                                              onPressed: () {
+                                                Navigator.pop(context, category);
+                                              },
+                                              child: Text(category),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                if (selectedCategory != null) {
+                                  setState(() {
+                                    cards[index]["category"] = selectedCategory;
+                                    saveCards(cards);
+                                  });
+                                }
+                              },
+                        child: Text(
+                          cards[index]["category"],
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (!isFixedCategory)
+                  Row(
+                    children: [
+                      for (int i = 1; i <= 4; i++)
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              cards[index]["quantity"] = cards[index]["quantity"] == i ? 0 : i;
+                              saveCards(cards);
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(50),
+                              color: i == cards[index]["quantity"] ? Colors.blue : Colors.grey.shade300,
+                            ),
+                            child: Text(
+                              '$i',
+                              style: const TextStyle(color: Colors.white, fontSize: 20),
+                            ),
+                          ),
+                        ),
+                    ],
+                  )
+                else
+                  Text("所持枚数: ${cards[index]["quantity"]}枚"),
+              ],
+            ),
+          );
+          if (isFixedCategory || nameEditable) {
+            return listTile;
+          } else {
+            return Dismissible(
+              key: UniqueKey(),
+              direction: DismissDirection.endToStart,
+              background: Container(
+                color: Colors.red,
+                child: const Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
+              onDismissed: (direction) {
+                setState(() {
+                  cards.removeAt(index);
+                  saveCards(cards);
+                });
+              },
+              child: listTile,
+            );
+          }
+        });
+  }
+
+//STEP1所持カードセーブ
+  Future<void> saveCards(List<Map<String, dynamic>> cards) async {
+    final prefs = await SharedPreferences.getInstance();
+    final cardsJson = jsonEncode(cards);
+    prefs.setString('cards', cardsJson);
+  }
+
+//STEP1所持カードロード
+  Future<List<Map<String, dynamic>>> loadCards() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cardsJson = prefs.getString('cards') ?? '[]';
+    final loadedCards = jsonDecode(cardsJson) as List;
+    return loadedCards.map<Map<String, dynamic>>((card) => Map<String, dynamic>.from(card)).toList();
+  }
+
+//STEP1所持カード初期化
+  Future<void> deleteSavedCards() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove('cards');
+  }
+
+  Future<void> _showDeleteConfirmationDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap a button to close the dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('所持カードリストを初期化しますか？'),
+          content: const Text('この操作は取り消せません。'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('いいえ'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
-            onDismissed: (direction) {
-              setState(() {
-                cards.removeAt(index);
-              });
-            },
-            child: listTile,
-          );
-        }
+            TextButton(
+              child: const Text('はい'),
+              onPressed: () {
+                deleteSavedCards().then((_) {
+                  // 画面を更新するためにsetStateを呼び出す
+                  setState(() {
+                    cards = initialCards.map((initialCards) => Map<String, dynamic>.from(initialCards)).toList();
+                  });
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+          ],
+        );
       },
     );
   }
-
-  //レスポンシブ対応PC用
-  // Widget _buildDesktopLayout(BuildContext context) {
-  //   return SingleChildScrollView(
-  //     controller: _scrollController,
-  //     child: Center(
-  //       child: DataTable(
-  //         columns: const [
-  //           DataColumn(label: Text('カード名')),
-  //           DataColumn(label: Text('カテゴリ')),
-  //           DataColumn(label: Text('所持枚数')),
-  //         ],
-  //         rows: List<DataRow>.generate(
-  //           cards.length,
-  //           (index) => DataRow(
-  //             cells: [
-  //               DataCell(
-  //                 TextField(
-  //                   decoration: InputDecoration(
-  //                     hintText:
-  //                         index < cards.length ? cards[index]["name"] : '',
-  //                   ),
-  //                   onChanged: (value) {
-  //                     setState(() {
-  //                       cards[index]["name"] = value;
-  //                     });
-  //                   },
-  //                 ),
-  //               ),
-  //               DataCell(
-  //                 DropdownButton<String>(
-  //                   value: cards[index]["category"],
-  //                   items: categories
-  //                       .map<DropdownMenuItem<String>>(
-  //                         (category) => DropdownMenuItem(
-  //                           value: category,
-  //                           child: Text(category),
-  //                         ),
-  //                       )
-  //                       .toList(),
-  //                   onChanged: (value) {
-  //                     setState(() {
-  //                       cards[index]["category"] = value!;
-  //                     });
-  //                   },
-  //                 ),
-  //               ),
-  //               DataCell(
-  //                 DropdownButton<int>(
-  //                   value: cards[index]["quantity"],
-  //                   items: quantities
-  //                       .map<DropdownMenuItem<int>>(
-  //                         (quantity) => DropdownMenuItem(
-  //                           value: quantity,
-  //                           child: Text('$quantity'),
-  //                         ),
-  //                       )
-  //                       .toList(),
-  //                   onChanged: (value) {
-  //                     setState(() {
-  //                       cards[index]["quantity"] = value!;
-  //                     });
-  //                   },
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 }
 
 //STEP2
@@ -720,8 +783,7 @@ class Step2Screen extends StatefulWidget {
   Step2ScreenState createState() => Step2ScreenState();
 }
 
-class Step2ScreenState extends State<Step2Screen>
-    with SingleTickerProviderStateMixin {
+class Step2ScreenState extends State<Step2Screen> with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
   int islandAmountMax = 32;
@@ -748,8 +810,7 @@ class Step2ScreenState extends State<Step2Screen>
     return cardAmounts.reduce((a, b) => a + b);
   }
 
-  void showSnackBar(
-      BuildContext context, String templateName, String categoryName) {
+  void showSnackBar(BuildContext context, String templateName, String categoryName) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Center(
@@ -767,8 +828,7 @@ class Step2ScreenState extends State<Step2Screen>
   void initState() {
     super.initState();
 
-    _tabController =
-        TabController(vsync: this, length: cardAmountTemplates.length);
+    _tabController = TabController(vsync: this, length: cardAmountTemplates.length);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
@@ -789,8 +849,7 @@ class Step2ScreenState extends State<Step2Screen>
 
     _tabController?.addListener(() {
       setState(() {
-        List<int> currentTemplate =
-            List.from(cardAmountTemplates[_tabController?.index ?? 0]);
+        List<int> currentTemplate = List.from(cardAmountTemplates[_tabController?.index ?? 0]);
         String currentTemplateName = 'テンプレート${_tabController!.index + 1}';
         for (int i = 0; i < currentTemplate.length; i++) {
           String category = categories[i];
@@ -853,13 +912,8 @@ class Step2ScreenState extends State<Step2Screen>
                               DropdownButton<int>(
                                 value: cardAmounts[index],
                                 items: [
-                                  for (int i = 0;
-                                      i <=
-                                          getCategoryQuantitySum(
-                                              categories[index]);
-                                      i++)
-                                    DropdownMenuItem(
-                                        value: i, child: Text('$i')),
+                                  for (int i = 0; i <= getCategoryQuantitySum(categories[index]); i++)
+                                    DropdownMenuItem(value: i, child: Text('$i')),
                                 ],
                                 onChanged: categories[index].contains("(固定)")
                                     ? null
@@ -867,8 +921,7 @@ class Step2ScreenState extends State<Step2Screen>
                                         setState(() {
                                           cardAmounts[index] = value!;
                                           if (index == nonBasicLandIndex) {
-                                            cardAmounts[basicLandIndex] =
-                                                islandAmountMax - value;
+                                            cardAmounts[basicLandIndex] = islandAmountMax - value;
                                           }
                                         });
                                       },
@@ -884,9 +937,7 @@ class Step2ScreenState extends State<Step2Screen>
             ),
           ),
           Text('合計値: $totalAmount'),
-          if (totalAmount != 80)
-            const Text('投入枚数が80枚になるようにしてください。',
-                style: TextStyle(color: Colors.red)),
+          if (totalAmount != 80) const Text('投入枚数が80枚になるようにしてください。', style: TextStyle(color: Colors.red)),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -903,9 +954,7 @@ class Step2ScreenState extends State<Step2Screen>
                 onChanged: (value) {
                   setState(() {
                     memoryLapseCheckbox = value!;
-                    memoryLapseCheckbox
-                        ? cardAmounts[memoryLapseIndex] = 6
-                        : cardAmounts[memoryLapseIndex] = 8;
+                    memoryLapseCheckbox ? cardAmounts[memoryLapseIndex] = 6 : cardAmounts[memoryLapseIndex] = 8;
                   });
                 },
               ),
@@ -950,12 +999,7 @@ class Step3Screen extends StatefulWidget {
   final List<String> categories;
   final List<int> cardAmounts;
 
-  const Step3Screen(
-      {Key? key,
-      this.cards,
-      required this.categories,
-      required this.cardAmounts})
-      : super(key: key);
+  const Step3Screen({Key? key, this.cards, required this.categories, required this.cardAmounts}) : super(key: key);
 
   @override
   Step3ScreenState createState() => Step3ScreenState();
@@ -972,26 +1016,23 @@ class Step3ScreenState extends State<Step3Screen> {
 
   List<Map<String, dynamic>> _generateDeck() {
     List<Map<String, dynamic>> newDeck = [];
-    List<Map<String, dynamic>> filteredCards =
-        widget.cards!.where((card) => card["quantity"] > 0).toList();
+    List<Map<String, dynamic>> filteredCards = widget.cards!.where((card) => card["quantity"] > 0).toList();
 
     for (int i = 0; i < widget.categories.length; i++) {
       String category = widget.categories[i];
       int targetAmount = widget.cardAmounts[i];
 
-      List<Map<String, dynamic>> categoryCards =
-          filteredCards.where((card) => card["category"] == category).toList();
+      List<Map<String, dynamic>> categoryCards = filteredCards.where((card) => card["category"] == category).toList();
       int currentAmount = 0;
 
       while (currentAmount < targetAmount && categoryCards.isNotEmpty) {
         int randomIndex = Random().nextInt(categoryCards.length);
         Map<String, dynamic> selectedCard = categoryCards[randomIndex];
 
-        int cardQuantity =
-            min(selectedCard["quantity"], targetAmount - currentAmount);
+        int cardQuantity = min(selectedCard["quantity"], targetAmount - currentAmount);
 
-        Map<String, dynamic>? existingCard = newDeck.firstWhereOrNull(
-            (deckCard) => deckCard["name"] == selectedCard["name"]);
+        Map<String, dynamic>? existingCard =
+            newDeck.firstWhereOrNull((deckCard) => deckCard["name"] == selectedCard["name"]);
 
         if (existingCard != null) {
           existingCard["quantity"] += cardQuantity;
@@ -1045,8 +1086,7 @@ class Step3ScreenState extends State<Step3Screen> {
 
   @override
   Widget build(BuildContext context) {
-    Map<String, List<Map<String, dynamic>>> categorizedDeck =
-        _categorizedDeck();
+    Map<String, List<Map<String, dynamic>>> categorizedDeck = _categorizedDeck();
 
     return Scaffold(
       body: Column(
@@ -1056,10 +1096,8 @@ class Step3ScreenState extends State<Step3Screen> {
               itemCount: categorizedDeck.keys.length,
               itemBuilder: (context, index) {
                 String category = categorizedDeck.keys.elementAt(index);
-                List<Map<String, dynamic>> categoryCards =
-                    categorizedDeck[category]!;
-                int totalCount = categoryCards.fold<int>(
-                    0, (sum, card) => sum + card["quantity"] as int);
+                List<Map<String, dynamic>> categoryCards = categorizedDeck[category]!;
+                int totalCount = categoryCards.fold<int>(0, (sum, card) => sum + card["quantity"] as int);
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1068,10 +1106,8 @@ class Step3ScreenState extends State<Step3Screen> {
                       padding: const EdgeInsets.fromLTRB(16, 15, 16, 0),
                       child: Text(
                         '$category ($totalCount)',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor),
+                        style:
+                            TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
                       ),
                     ),
                     const Divider(),
