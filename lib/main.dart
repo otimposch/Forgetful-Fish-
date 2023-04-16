@@ -132,9 +132,7 @@ class TwitterShareWidget extends StatelessWidget {
   final String via;
   final String related;
 
-  const TwitterShareWidget(
-      {Key? key, required this.text, this.url = "", this.hashtags = const [], this.via = "", this.related = ""})
-      : super(key: key);
+  const TwitterShareWidget({Key? key, required this.text, this.url = "", this.hashtags = const [], this.via = "", this.related = ""}) : super(key: key);
 
   void _tweet() async {
     final Map<String, dynamic> tweetQuery = {
@@ -507,8 +505,7 @@ class Step1ScreenState extends State<Step1Screen> {
       );
     } else {
       setState(() {
-        cards.add(
-            {"name": "カード名を入力", "category": categories[0], "quantity": 0, "name_editable": true, "image": "画像のURL"});
+        cards.add({"name": "カード名を入力", "category": categories[0], "quantity": 0, "name_editable": true, "image": "画像のURL"});
         saveCards(cards);
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -576,29 +573,54 @@ class Step1ScreenState extends State<Step1Screen> {
         itemBuilder: (BuildContext context, int index) {
           bool isFixedCategory = cards[index]["category"].contains("(固定)");
           bool nameEditable = cards[index]["name_editable"] ?? false;
-
           Widget listTile = ListTile(
             title: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                //カード名とカテゴリのウィジェット
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      nameEditable
-                          ? TextFormField(
-                              initialValue: cards[index]["name"],
-                              onChanged: (String value) {
-                                setState(() {
-                                  cards[index]["name"] = value;
-                                  saveCards(cards);
-                                });
-                              },
-                            )
-                          : Text(
-                              cards[index]["name"],
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                      // カード名
+                      GestureDetector(
+                        onTap: () async {
+                          showDialog<String>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return SimpleDialog(
+                                title: Text(cards[index]["name"]),
+                                contentPadding: const EdgeInsets.all(20),
+                                children: [
+                                  if (cards[index]["image"] != null)
+                                    Container(
+                                      padding: const EdgeInsets.only(bottom: 20),
+                                      child: Image.network(
+                                        cards[index]["image"],
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        child: nameEditable
+                            ? TextFormField(
+                                initialValue: cards[index]["name"],
+                                onChanged: (String value) {
+                                  setState(() {
+                                    cards[index]["name"] = value;
+                                    saveCards(cards);
+                                  });
+                                },
+                              )
+                            : Text(
+                                cards[index]["name"],
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                      ),
+                      // カテゴリ
                       InkWell(
                         onTap: isFixedCategory
                             ? null
@@ -607,21 +629,11 @@ class Step1ScreenState extends State<Step1Screen> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return SimpleDialog(
-                                      title: Text(cards[index]["name"]),
+                                      title: Text('${cards[index]["name"]}のカテゴリを変更してください'),
                                       contentPadding: const EdgeInsets.all(20),
                                       children: [
-                                        if (cards[index]["image"] != null)
-                                          Container(
-                                            padding: const EdgeInsets.only(bottom: 20),
-                                            child: Image.network(
-                                              cards[index]["image"],
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
                                         Column(
-                                          children: categories
-                                              .where((String category) => !category.contains("(固定)"))
-                                              .map<Widget>((String category) {
+                                          children: categories.where((String category) => !category.contains("(固定)")).map<Widget>((String category) {
                                             return SimpleDialogOption(
                                               onPressed: () {
                                                 Navigator.pop(context, category);
@@ -651,8 +663,10 @@ class Step1ScreenState extends State<Step1Screen> {
                   ),
                 ),
                 const SizedBox(width: 8),
+                // 投入数量選択
                 if (!isFixedCategory)
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       for (int i = 1; i <= 4; i++)
                         GestureDetector(
@@ -663,26 +677,52 @@ class Step1ScreenState extends State<Step1Screen> {
                             });
                           },
                           child: Container(
+                            width: 40, // 幅を制限
+                            height: 40, // 高さを制限
                             margin: const EdgeInsets.symmetric(horizontal: 2),
-                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(50),
                               color: i == cards[index]["quantity"] ? Colors.blue : Colors.grey.shade300,
                             ),
-                            child: Text(
-                              '$i',
-                              style: const TextStyle(color: Colors.white, fontSize: 20),
+                            child: Stack(
+                              children: [
+                                const Center(
+                                  child: Icon(
+                                    MdiIcons.cards, // カードアイコン
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                if (i == cards[index]["quantity"])
+                                  Positioned(
+                                    bottom: 2,
+                                    right: 9,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2), // パディングを均等に調整
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(100), // 半径を大きくして完全な丸にする
+                                        border: Border.all(color: Colors.blue, width: 1), // ボーダーを設定
+                                        color: Colors.white,
+                                      ),
+                                      child: Text(
+                                        '×$i',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
                     ],
                   )
                 else
-                  Text("所持枚数: ${cards[index]["quantity"]}枚"),
+                  Text("×${cards[index]["quantity"]}枚"),
               ],
             ),
           );
-          if (isFixedCategory || nameEditable) {
+
+          //行削除
+          if (isFixedCategory) {
             return listTile;
           } else {
             return Dismissible(
@@ -794,9 +834,7 @@ class Step2ScreenState extends State<Step2Screen> with SingleTickerProviderState
   List<String> get categories => widget.categories;
   late List<int> cardAmounts = List.generate(categories.length, (index) => 0);
   int getCategoryQuantitySum(String category) {
-    return widget.cards!
-        .where((card) => card['category'] == category)
-        .fold<int>(0, (sum, card) => sum + card['quantity'] as int);
+    return widget.cards!.where((card) => card['category'] == category).fold<int>(0, (sum, card) => sum + card['quantity'] as int);
   }
 
   int get totalAmount {
@@ -912,8 +950,7 @@ class Step2ScreenState extends State<Step2Screen> with SingleTickerProviderState
                               DropdownButton<int>(
                                 value: cardAmounts[index],
                                 items: [
-                                  for (int i = 0; i <= getCategoryQuantitySum(categories[index]); i++)
-                                    DropdownMenuItem(value: i, child: Text('$i')),
+                                  for (int i = 0; i <= getCategoryQuantitySum(categories[index]); i++) DropdownMenuItem(value: i, child: Text('$i')),
                                 ],
                                 onChanged: categories[index].contains("(固定)")
                                     ? null
@@ -1031,8 +1068,7 @@ class Step3ScreenState extends State<Step3Screen> {
 
         int cardQuantity = min(selectedCard["quantity"], targetAmount - currentAmount);
 
-        Map<String, dynamic>? existingCard =
-            newDeck.firstWhereOrNull((deckCard) => deckCard["name"] == selectedCard["name"]);
+        Map<String, dynamic>? existingCard = newDeck.firstWhereOrNull((deckCard) => deckCard["name"] == selectedCard["name"]);
 
         if (existingCard != null) {
           existingCard["quantity"] += cardQuantity;
@@ -1106,8 +1142,7 @@ class Step3ScreenState extends State<Step3Screen> {
                       padding: const EdgeInsets.fromLTRB(16, 15, 16, 0),
                       child: Text(
                         '$category ($totalCount)',
-                        style:
-                            TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
                       ),
                     ),
                     const Divider(),

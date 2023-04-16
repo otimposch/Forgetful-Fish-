@@ -64,10 +64,10 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/cards/dandan.png
-    - assets/contact/profile.jpeg
-    - assets/icon/dandan_sq.png
-    - assets/icon/Dandan banner.png
+    - assets/cards/
+    - assets/contact/
+    - assets/icon/
+    - assets/about/
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
