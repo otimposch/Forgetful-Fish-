@@ -467,6 +467,29 @@ class CustomElevatedButton extends StatelessWidget {
   }
 }
 
+//カード名タップ時の画像表示
+void showCardImageDialog(BuildContext context, String cardName, String? imageUrl) {
+  showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+      return SimpleDialog(
+        title: Text(cardName),
+        contentPadding: const EdgeInsets.all(20),
+        children: [
+          if (imageUrl != null)
+            Container(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+              ),
+            ),
+        ],
+      );
+    },
+  );
+}
+
 //STEP1
 class Step1Screen extends StatefulWidget {
   const Step1Screen({Key? key}) : super(key: key);
@@ -584,26 +607,8 @@ class Step1ScreenState extends State<Step1Screen> {
                     children: [
                       // カード名
                       GestureDetector(
-                        onTap: () async {
-                          showDialog<String>(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return SimpleDialog(
-                                title: Text(cards[index]["name"]),
-                                contentPadding: const EdgeInsets.all(20),
-                                children: [
-                                  if (cards[index]["image"] != null)
-                                    Container(
-                                      padding: const EdgeInsets.only(bottom: 20),
-                                      child: Image.network(
-                                        cards[index]["image"],
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                ],
-                              );
-                            },
-                          );
+                        onTap: () {
+                          showCardImageDialog(context, cards[index]["name"], cards[index]["image"]);
                         },
                         child: nameEditable
                             ? TextFormField(
@@ -1076,7 +1081,8 @@ class Step3ScreenState extends State<Step3Screen> {
           newDeck.add({
             "name": selectedCard["name"],
             "quantity": cardQuantity,
-            "category": category // ここを追加
+            "category": category, // ここを追加
+            "image": selectedCard["image"], // 画像URLを追加
           });
         }
 
@@ -1111,10 +1117,20 @@ class Step3ScreenState extends State<Step3Screen> {
   List<Widget> buildCategoryCardList(List<Map<String, dynamic>> cards) {
     return cards.map<Widget>((card) {
       return Container(
-        color: const Color.fromARGB(255, 255, 255, 255), // カードの背景色を変更
+        color: const Color.fromARGB(255, 250, 250, 250), // カードの背景色を変更
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 6), // 高さを調整
-          child: Text('${card["quantity"]} x ${card["name"]}'),
+          child: Row(
+            children: [
+              Text('${card["quantity"]} x '),
+              GestureDetector(
+                onTap: () {
+                  showCardImageDialog(context, card["name"], card["image"]);
+                },
+                child: Text(card["name"]),
+              ),
+            ],
+          ),
         ),
       );
     }).toList();
@@ -1123,7 +1139,6 @@ class Step3ScreenState extends State<Step3Screen> {
   @override
   Widget build(BuildContext context) {
     Map<String, List<Map<String, dynamic>>> categorizedDeck = _categorizedDeck();
-
     return Scaffold(
       body: Column(
         children: [
@@ -1134,7 +1149,6 @@ class Step3ScreenState extends State<Step3Screen> {
                 String category = categorizedDeck.keys.elementAt(index);
                 List<Map<String, dynamic>> categoryCards = categorizedDeck[category]!;
                 int totalCount = categoryCards.fold<int>(0, (sum, card) => sum + card["quantity"] as int);
-
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
