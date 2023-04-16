@@ -681,47 +681,12 @@ class Step1ScreenState extends State<Step1Screen> {
                               saveCards(cards);
                             });
                           },
-                          child: Container(
-                            width: 40, // 幅を制限
-                            height: 40, // 高さを制限
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(50),
-                              color: i == cards[index]["quantity"] ? Colors.blue : Colors.grey.shade300,
-                            ),
-                            child: Stack(
-                              children: [
-                                const Center(
-                                  child: Icon(
-                                    MdiIcons.cards, // カードアイコン
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                if (i == cards[index]["quantity"])
-                                  Positioned(
-                                    bottom: 2,
-                                    right: 9,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2), // パディングを均等に調整
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(100), // 半径を大きくして完全な丸にする
-                                        border: Border.all(color: Colors.blue, width: 1), // ボーダーを設定
-                                        color: Colors.white,
-                                      ),
-                                      child: Text(
-                                        '×$i',
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
+                          child: buildQuantityIcon(i, isSelected: i == cards[index]["quantity"]),
                         ),
                     ],
                   )
                 else
-                  Text("×${cards[index]["quantity"]}枚"),
+                  buildQuantityIcon(cards[index]["quantity"], isSelected: true),
               ],
             ),
           );
@@ -756,6 +721,45 @@ class Step1ScreenState extends State<Step1Screen> {
             );
           }
         });
+  }
+
+//カード選択アイコン
+  Widget buildQuantityIcon(int quantity, {required bool isSelected}) {
+    return Container(
+      width: 40,
+      height: 40,
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(50),
+        color: isSelected ? Colors.blue : Colors.grey.shade300,
+      ),
+      child: Stack(
+        children: [
+          const Center(
+            child: Icon(
+              MdiIcons.cards,
+              color: Colors.white,
+            ),
+          ),
+          Positioned(
+            bottom: 2,
+            right: 9,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade300, width: 1),
+                color: Colors.white,
+              ),
+              child: Text(
+                '×$quantity',
+                style: TextStyle(fontSize: 12, color: isSelected ? Colors.blue : Colors.grey.shade300),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
 //STEP1所持カードセーブ
