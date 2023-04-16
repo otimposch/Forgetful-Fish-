@@ -479,7 +479,7 @@ void showCardImageDialog(BuildContext context, String cardName, String? imageUrl
           if (imageUrl != null)
             Container(
               padding: const EdgeInsets.only(bottom: 20),
-              child: Image.network(
+              child: Image.asset(
                 imageUrl,
                 fit: BoxFit.cover,
               ),

@@ -1,32 +1,32 @@
 {
-    "name": "create_deck",
-    "short_name": "create_deck",
+    "name": "Forgetful Fish Generator - マジックザギャザリング デッキ生成アプリ",
+    "short_name": "Forgetful Fish Generator",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "マジックザギャザリングのユニークな対戦フォーマットであるForgetful Fishのデッキを生成するWebアプリです。自分のカードを登録してデッキ構成を選び、新たな対戦を楽しみましょう！",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
         {
-            "src": "icons/Icon-192.png",
+            "src": "assets/icon/dandan_sq.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "icons/Icon-512.png",
+            "src": "assets/icon/dandan_sq.png",
             "sizes": "512x512",
             "type": "image/png"
         },
         {
-            "src": "icons/Icon-maskable-192.png",
+            "src": "assets/icon/dandan_sq.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "maskable"
         },
         {
-            "src": "icons/Icon-maskable-512.png",
+            "src": "assets/icon/dandan_sq.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
