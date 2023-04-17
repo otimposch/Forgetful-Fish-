@@ -747,9 +747,8 @@ class Step1ScreenState extends State<Step1Screen> {
           Align(
             alignment: const Alignment(0, 0.83), // x: 0 (中央), y: -0.5 (2ピクセル上)
             child: Container(
-              width: 26, // 横方向の幅を設定
+              width: 28, // 横方向の幅を設定
               height: 16, // 縦方向の高さを設定
-              padding: const EdgeInsets.symmetric(horizontal: 1),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8), // 角丸に変更
                 border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade300, width: 1),
