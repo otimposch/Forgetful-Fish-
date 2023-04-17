@@ -5,6 +5,7 @@ import 'dart:math';
 import 'constants.dart';
 import 'about_page.dart';
 import 'contact_page.dart';
+import 'howtoplay_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'dart:async';
@@ -168,7 +169,7 @@ class CustomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String shareText = 'Forgetful Fish - マジックザギャザリングデッキ生成アプリ';
+    String shareText = 'Forgetful Fish Generator - マジックザギャザリングデッキ生成アプリ';
     String shareUrl = 'https://forgetful-fish.web.app';
 
     return Drawer(
@@ -193,24 +194,25 @@ class CustomDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.lightbulb_outline),
+            leading: const Icon(Icons.lightbulb),
             title: Row(
               children: const [
                 Text(
                   'ForgetfulFishの遊び方',
                   style: TextStyle(
-                    decoration: TextDecoration.lineThrough,
-                  ),
+                      //decoration: TextDecoration.lineThrough,
+                      ),
                 ),
-                SizedBox(width: 8),
-                Text(
-                  '準備中',
-                  style: TextStyle(color: Colors.red),
-                ),
+                // SizedBox(width: 8),
+                // Text(
+                //   '準備中',
+                //   style: TextStyle(color: Colors.red),
+                // ),
               ],
             ),
             onTap: () {
-              // 何もしない
+              Navigator.of(context).pop(); // drawer を閉じる
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const HowToPlayPage()));
             },
           ),
           ListTile(
@@ -735,19 +737,20 @@ class Step1ScreenState extends State<Step1Screen> {
       ),
       child: Stack(
         children: [
-          const Center(
+          const Align(
+            alignment: Alignment(0, -0.4), // x: 0 (中央), y: -0.2 (少し上に移動)
             child: Icon(
               MdiIcons.cards,
               color: Colors.white,
             ),
           ),
-          Positioned(
-            bottom: 2,
-            right: 9,
+          Align(
+            alignment: const Alignment(0, 0.9), // x: 0 (中央), y: -0.5 (2ピクセル上)
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+              height: 14, // 縦方向の高さを調整
+              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade300, width: 1),
                 color: Colors.white,
               ),
