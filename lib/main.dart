@@ -738,25 +738,29 @@ class Step1ScreenState extends State<Step1Screen> {
       child: Stack(
         children: [
           const Align(
-            alignment: Alignment(0, -0.4), // x: 0 (中央), y: -0.2 (少し上に移動)
+            alignment: Alignment(0, -0.6), // x: 0 (中央), y: -0.2 (少し上に移動)
             child: Icon(
               MdiIcons.cards,
               color: Colors.white,
             ),
           ),
           Align(
-            alignment: const Alignment(0, 0.9), // x: 0 (中央), y: -0.5 (2ピクセル上)
+            alignment: const Alignment(0, 0.83), // x: 0 (中央), y: -0.5 (2ピクセル上)
             child: Container(
-              height: 14, // 縦方向の高さを調整
-              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0),
+              width: 26, // 横方向の幅を設定
+              height: 16, // 縦方向の高さを設定
+              padding: const EdgeInsets.symmetric(horizontal: 1),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8), // 角丸に変更
                 border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade300, width: 1),
                 color: Colors.white,
               ),
-              child: Text(
-                '×$quantity',
-                style: TextStyle(fontSize: 12, color: isSelected ? Colors.blue : Colors.grey.shade300),
+              child: Center(
+                // テキストを中央寄せにするためにCenterウィジェットを追加
+                child: Text(
+                  '×$quantity',
+                  style: TextStyle(fontSize: 12, color: isSelected ? Colors.blue : Colors.grey.shade300),
+                ),
               ),
             ),
           ),
