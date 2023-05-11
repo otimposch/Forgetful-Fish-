@@ -23,7 +23,6 @@ Future<void> main() async {
 //Home
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -65,10 +64,11 @@ class MyApp extends StatelessWidget {
                 final cards = args['cards'];
                 final categories = args['categories'];
                 final cardAmounts = args['cardAmounts'];
+                final includeFourCards = args['accumulatedKnowledgeCheckbox'];
                 builder = (BuildContext context) => Column(children: [
                       const ProgressIndicator(currentStep: 3),
                       Expanded(
-                        child: Step3Screen(cards: cards, categories: categories, cardAmounts: cardAmounts),
+                        child: Step3Screen(cards: cards, categories: categories, cardAmounts: cardAmounts, includeFourCards: includeFourCards),
                       )
                     ]);
                 break;
@@ -846,6 +846,7 @@ class Step2ScreenState extends State<Step2Screen> with SingleTickerProviderState
   int get basicLandIndex => widget.categories.indexOf("基本土地(固定)");
   int get nonBasicLandIndex => widget.categories.indexOf("基本でない土地");
   bool memoryLapseCheckbox = false;
+  bool accumulatedKnowledgeCheckbox = true;
   List<String> get categories => widget.categories;
   late List<int> cardAmounts = List.generate(categories.length, (index) => 0);
   int getCategoryQuantitySum(String category) {
@@ -1013,6 +1014,27 @@ class Step2ScreenState extends State<Step2Screen> with SingleTickerProviderState
             ],
           ),
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    memoryLapseCheckbox = !memoryLapseCheckbox;
+                  });
+                },
+                child: const Text("蓄積した知識,棚卸し,大慌ての棚卸が\n投入されるなら必ず4枚投入する"),
+              ),
+              Checkbox(
+                value: accumulatedKnowledgeCheckbox,
+                onChanged: (value) {
+                  setState(() {
+                    accumulatedKnowledgeCheckbox = value!;
+                  });
+                },
+              ),
+            ],
+          ),
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               CustomElevatedButton(
@@ -1032,6 +1054,7 @@ class Step2ScreenState extends State<Step2Screen> with SingleTickerProviderState
                             'cards': widget.cards,
                             'categories': widget.categories,
                             'cardAmounts': cardAmounts,
+                            'accumulatedKnowledgeCheckbox': accumulatedKnowledgeCheckbox,
                           },
                         );
                       }
@@ -1050,8 +1073,9 @@ class Step3Screen extends StatefulWidget {
   final List<Map<String, dynamic>>? cards;
   final List<String> categories;
   final List<int> cardAmounts;
+  final bool includeFourCards;
 
-  const Step3Screen({Key? key, this.cards, required this.categories, required this.cardAmounts}) : super(key: key);
+  const Step3Screen({Key? key, this.cards, required this.categories, required this.cardAmounts, required this.includeFourCards}) : super(key: key);
 
   @override
   Step3ScreenState createState() => Step3ScreenState();
@@ -1063,10 +1087,10 @@ class Step3ScreenState extends State<Step3Screen> {
   @override
   void initState() {
     super.initState();
-    deck = _generateDeck();
+    deck = _generateDeck(includeFourCards: widget.includeFourCards);
   }
 
-  List<Map<String, dynamic>> _generateDeck() {
+  List<Map<String, dynamic>> _generateDeck({required bool includeFourCards}) {
     List<Map<String, dynamic>> newDeck = [];
     List<Map<String, dynamic>> filteredCards = widget.cards!.where((card) => card["quantity"] > 0).toList();
 
@@ -1081,7 +1105,12 @@ class Step3ScreenState extends State<Step3Screen> {
         int randomIndex = Random().nextInt(categoryCards.length);
         Map<String, dynamic> selectedCard = categoryCards[randomIndex];
 
-        int cardQuantity = min(selectedCard["quantity"], targetAmount - currentAmount);
+        int cardQuantity;
+        if (includeFourCards && (selectedCard["name"] == "蓄積した知識 / Accumulated Knowledge" || selectedCard["name"] == "棚卸し / Take Inventory" || selectedCard["name"] == "大慌ての棚卸し / Frantic Inventory")) {
+          cardQuantity = selectedCard["quantity"];
+        } else {
+          cardQuantity = min(selectedCard["quantity"], targetAmount - currentAmount);
+        }
 
         Map<String, dynamic>? existingCard = newDeck.firstWhereOrNull((deckCard) => deckCard["name"] == selectedCard["name"]);
 
@@ -1091,13 +1120,37 @@ class Step3ScreenState extends State<Step3Screen> {
           newDeck.add({
             "name": selectedCard["name"],
             "quantity": cardQuantity,
-            "category": category, // ここを追加
-            "image": selectedCard["image"], // 画像URLを追加
+            "category": category,
+            "image": selectedCard["image"],
           });
         }
 
         currentAmount += cardQuantity;
         categoryCards.removeAt(randomIndex);
+      }
+
+      // targetAmountを超えてしまう場合、指定されたカード以外を削除する
+      if (includeFourCards && currentAmount > targetAmount) {
+        int excessCards = currentAmount - targetAmount;
+        List<Map<String, dynamic>> nonSpecificCards = newDeck
+            .where(
+                (card) => card["category"] == category && card["name"] != "蓄積した知識 / Accumulated Knowledge" && card["name"] != "棚卸し / Take Inventory" && card["name"] != "大慌ての棚卸し / Frantic Inventory")
+            .toList();
+
+        // excessCardsが0になるまで、nonSpecificCardsからランダムにカードを削除する
+        while (excessCards > 0 && nonSpecificCards.isNotEmpty) {
+          int randomIndexToRemove = Random().nextInt(nonSpecificCards.length);
+          Map<String, dynamic> cardToRemove = nonSpecificCards.removeAt(randomIndexToRemove);
+
+          int removeQuantity = min(cardToRemove["quantity"], excessCards);
+
+          cardToRemove["quantity"] -= removeQuantity;
+          excessCards -= removeQuantity;
+
+          if (cardToRemove["quantity"] == 0) {
+            newDeck.remove(cardToRemove);
+          }
+        }
       }
     }
 
@@ -1189,7 +1242,7 @@ class Step3ScreenState extends State<Step3Screen> {
                 buttonText: '再生成',
                 onPressed: () {
                   setState(() {
-                    deck = _generateDeck();
+                    deck = _generateDeck(includeFourCards: widget.includeFourCards);
                   });
                 },
               ),

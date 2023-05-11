@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'contact_page.dart';
 
 class HowToPlayPage extends StatelessWidget {
   const HowToPlayPage({Key? key}) : super(key: key);
@@ -10,8 +12,32 @@ class HowToPlayPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('ForgetfulFishの遊び方'),
       ),
-      body: const Markdown(data: _markdownData),
+      body: Markdown(
+        data: _markdownData,
+        onTapLink: (text, href, title) {
+          if (href == 'contact_page') {
+            _navigateToOtherPage(context);
+          } else {
+            _launchURL(href!); // Handle other links (e.g. external links) here
+          }
+        },
+      ),
     );
+  }
+
+  void _navigateToOtherPage(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ContactPage()),
+    );
+  }
+
+  void _launchURL(String url) async {
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }
 
@@ -64,7 +90,7 @@ const String _markdownData = """
 - **精神の島**：上記のフリーマリガン・ルールの代わりに採用するオプションです。プレイヤーは手札を配る前にデッキから島を4つ取り除きます。各プレイヤーはアンタップ状態の島を2つをプレイした状態で開始し、先手プレイヤーの第1メインフェイズからプレイを開始します。各プレイヤーは通常通り7枚の手札でプレイを開始し、マジックの標準的なマリガン・ルールが適用されます。これはクイックスタートの効果があり、また基本でない土地(タップインランド等)だけがプレイされる可能性もなくなり、一方的に《ダンダーン》がプレイヤーを攻撃することを防ぐことができます。
 - **リメンバー・ザ・フィッシュ**：デッキのカードがなくなり、プレイヤーがカードを引かざるを得なくなった場合、カードを引く前に墓地をライブラリに再シャッフルします。ライブラリーや墓地にカードがない場合を除き、ライブラリアウトによってプレイヤーがゲームに負けることがなくなります。
 - **サンクス・フォー・ザ・フィッシュ**： あるカードの「オーナー」を参照するカードは、代わりにそのカードの「コントローラー」を参照するものとして扱われます。これにより、《命令の光 / Ray of Command》と《非実体化 / Unsubstantiate》や《奪取の形態 / Supplant Form》を組み合わせて、《ダンダーン / Dandân》のコントロールを永続的に得ることができます。
-- **双頭魚人**： 4人のプレイヤーで2人1組のチームを組み、標準の双頭巨人ルールでプレイします。ただし、各チームのライフは30ではなく20から始まります（ゲーム時間の短縮のため）チームのドロー・ステップでは、どちらのチームメイトが先にドローを行うかを決定します。
+- **双頭巨魚**： 4人のプレイヤーで2人1組のチームを組み、標準の双頭巨人ルールでプレイします。ただし、各チームのライフは30ではなく20から始まります（ゲーム時間の短縮のため）チームのドロー・ステップでは、どちらのチームメイトが先にドローを行うかを決定します。
 
 ---
 
@@ -139,8 +165,7 @@ ForgetfulFishでは、アクティブなプレイヤーは、ポーカーや花�
 - **予報**：名前の指定は唱えたときではなく、解決時に行います。
 - **命令の光**： アンタップされているクリーチャー1体を対象としても構いません。そのクリーチャーは、クリーンアップ・ステップ中に「ターン終了時まで」の効果が切れたとき、対戦相手のコントロールに戻ります(そしてタップされます)。
 このカードの効果が終了したとき、あるいは呪文や能力によって他のプレイヤーがそのクリーチャーのコントロールを得たときなど、
-何らかの理由であなたがそのクリーチャーのコントロールを失ったとき、あなたはそのクリーチャーをタップします。\n
-たとえば《命令の光》で奪ったクリーチャーに対して、対戦相手がさらに《命令の光》を使って、そのクリーチャーのコントロールを取り戻した場合、
+何らかの理由であなたがそのクリーチャーのコントロールを失ったとき、あなたはそのクリーチャーをタップします。たとえば《命令の光》で奪ったクリーチャーに対して、対戦相手がさらに《命令の光》を使って、そのクリーチャーのコントロールを取り戻した場合、
 そのクリーチャーは、2枚目の《命令の光》が解決された後(つまりアンタップされた後)、1枚目の《命令の光》の誘発型能力によりタップされます。
 - **奪取の形態**： トークンは、そのクリーチャーに印刷されていたものをそのままコピーし、それ以外のものはコピーしません。
 対象にとったクリーチャーがトークンである場合、《奪取の形態》が生み出すトークンは、対象としたトークンを戦場に出した効果によって定義された元の特性をそのままコピーします。
@@ -156,6 +181,7 @@ ForgetfulFishでは、アクティブなプレイヤーは、ポーカーや花�
 Forgetful Fishという刺激的なフォーマットを生み出してくれたFloyd氏に最大の感謝を。\n
 その他にもFloyd氏は [R.P.S.](https://docs.google.com/document/d/1z2AEeOtbwzM_dplDE-60iUjH0_pbZXd8_-smYEATovc/edit) や [Trippin](https://docs.google.com/document/d/1Cf4NFx1ZlHE1ISS7aYYnbrBTR6H30yYbKax5iubK3qI/edit)といった面白いフォーマットを作ってるみたいです。
 次に日本で流行るのはこれかもしれないですね。\n
-コミュニティのアイデアやフィードバックによってこのサイトは成長しています。新たなルールの提案やゲームに関する意見があれば、ぜひコンタクトページからご意見をお寄せください。
-          
+コミュニティのアイデアやフィードバックによってこのサイトは成長しています。新たなルールの提案やゲームに関する意見があれば、ぜひ[コンタクトページ](contact_page)からご意見をお寄せください。
+ \n
+ \n          
 """;
