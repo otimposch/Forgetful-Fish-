@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: Scaffold(
-        appBar: CustomAppBar(),
+        appBar: const CustomAppBar(),
         drawerEnableOpenDragGesture: false,
         drawer: const CustomDrawer(),
         body: Navigator(
@@ -85,8 +85,8 @@ class MyApp extends StatelessWidget {
 }
 
 //新Appbar
-class CustomAppBar extends StatelessWidget with PreferredSizeWidget {
-  CustomAppBar({Key? key}) : super(key: key);
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const CustomAppBar({Key? key}) : super(key: key);
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
